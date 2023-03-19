@@ -6,11 +6,15 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import zerobase.weather.domain.Diary;
+import zerobase.weather.repository.DiaryRepository;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +22,27 @@ import java.util.Map;
 public class DiaryService {
     @Value("${openweathermap.key}")
     private String apiKey;
+    private final DiaryRepository diaryRepository;
 
+    public DiaryService(DiaryRepository diaryRepository) {
+        this.diaryRepository = diaryRepository;
+    }
+
+    @Transactional
+    public void createDiary(LocalDate date, String text) {
+        String weatherData = getWeatherString();
+
+        Map<String, Object> parsedWeather = parseWeather(weatherData);
+
+        Diary nowDiary = new Diary();
+        nowDiary.setWeather(parsedWeather.get("main").toString());
+        nowDiary.setIcon(parsedWeather.get("icon").toString());
+        nowDiary.setTemperature((Double) parsedWeather.get("temp"));
+        nowDiary.setText(text);
+        nowDiary.setDate(date);
+
+        diaryRepository.save(nowDiary);
+    }
     private String getWeatherString() {
         String apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=seoul&appid=" + apiKey;
 
