@@ -39,18 +39,22 @@ public class DiaryService {
 
     @Transactional
     public void createDiary(LocalDate date, String text) {
-        String weatherData = getWeatherString();
-
-        Map<String, Object> parsedWeather = parseWeather(weatherData);
+        DateWeather dateWeather = getDateWeather(date);
 
         Diary nowDiary = new Diary();
-        nowDiary.setWeather(parsedWeather.get("main").toString());
-        nowDiary.setIcon(parsedWeather.get("icon").toString());
-        nowDiary.setTemperature((Double) parsedWeather.get("temp"));
+        nowDiary.setDateWeather(dateWeather);
         nowDiary.setText(text);
-        nowDiary.setDate(date);
 
         diaryRepository.save(nowDiary);
+    }
+    private DateWeather getDateWeather(LocalDate date) {
+        List<DateWeather> dateWeatherFromDB = dateWeatherRepository.findAllByDate(date);
+
+        if (dateWeatherFromDB.isEmpty()) {
+            return getWeatherFromApi(date);
+        } else {
+            return dateWeatherFromDB.get(0);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -78,16 +82,16 @@ public class DiaryService {
     @Transactional
     @Scheduled(cron = "0 0 1 * * *")
     public void saveWeatherDate() {
-        dateWeatherRepository.save(getWeatherFromApi());
+        dateWeatherRepository.save(getWeatherFromApi(LocalDate.now()));
     }
 
-    private DateWeather getWeatherFromApi() {
+    private DateWeather getWeatherFromApi(LocalDate date) {
         String weatherData = getWeatherString();
 
         Map<String, Object> parsedWeather = parseWeather(weatherData);
 
         DateWeather dateWeather = new DateWeather();
-        dateWeather.setDate(LocalDate.now());
+        dateWeather.setDate(date);
         dateWeather.setWeather(parsedWeather.get("main").toString());
         dateWeather.setIcon(parsedWeather.get("icon").toString());
         dateWeather.setTemperature((Double) parsedWeather.get("temp"));
