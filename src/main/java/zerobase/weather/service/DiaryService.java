@@ -4,10 +4,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zerobase.weather.WeatherApplication;
 import zerobase.weather.domain.DateWeather;
 import zerobase.weather.domain.Diary;
 import zerobase.weather.repository.DateWeatherRepository;
@@ -29,6 +32,8 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DateWeatherRepository dateWeatherRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(WeatherApplication.class);
+
     public DiaryService(
             DiaryRepository diaryRepository,
             DateWeatherRepository dateWeatherRepository
@@ -46,6 +51,7 @@ public class DiaryService {
         nowDiary.setText(text);
 
         diaryRepository.save(nowDiary);
+        logger.info("Successfully saved diary");
     }
     private DateWeather getDateWeather(LocalDate date) {
         List<DateWeather> dateWeatherFromDB = dateWeatherRepository.findAllByDate(date);
@@ -83,6 +89,7 @@ public class DiaryService {
     @Scheduled(cron = "0 0 1 * * *")
     public void saveWeatherDate() {
         dateWeatherRepository.save(getWeatherFromApi(LocalDate.now()));
+        logger.info("Successfully saved weather data.");
     }
 
     private DateWeather getWeatherFromApi(LocalDate date) {
@@ -96,6 +103,7 @@ public class DiaryService {
         dateWeather.setIcon(parsedWeather.get("icon").toString());
         dateWeather.setTemperature((Double) parsedWeather.get("temp"));
 
+        logger.info("Successfully importing weather data.");
         return dateWeather;
     }
 
