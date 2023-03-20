@@ -13,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import zerobase.weather.WeatherApplication;
 import zerobase.weather.domain.DateWeather;
 import zerobase.weather.domain.Diary;
+import zerobase.weather.error.DiaryException;
 import zerobase.weather.repository.DateWeatherRepository;
 import zerobase.weather.repository.DiaryRepository;
+import zerobase.weather.type.ErrorCode;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -53,6 +55,7 @@ public class DiaryService {
         diaryRepository.save(nowDiary);
         logger.info("Successfully saved diary");
     }
+
     private DateWeather getDateWeather(LocalDate date) {
         List<DateWeather> dateWeatherFromDB = dateWeatherRepository.findAllByDate(date);
 
@@ -65,11 +68,13 @@ public class DiaryService {
 
     @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date) {
+        validateDate(date);
         return diaryRepository.findAllByDate(date);
     }
 
     @Transactional(readOnly = true)
     public List<Diary> readDiaries(LocalDate startDate, LocalDate endDate) {
+        validatePeriod(startDate, endDate);
         return diaryRepository.findAllByDateBetween(startDate, endDate);
     }
 
@@ -137,7 +142,7 @@ public class DiaryService {
 
             return response.toString();
         } catch (Exception e) {
-            return "failed to response";
+            throw new DiaryException(ErrorCode.OPEN_API_DATA_IMPORTING_ERROR);
         }
     }
 
@@ -148,7 +153,7 @@ public class DiaryService {
         try {
             jsonObject = (JSONObject) jsonParser.parse(jsonString);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new DiaryException(ErrorCode.JSON_PARSE_ERROR);
         }
 
         Map<String, Object> resultMap = new HashMap<>();
@@ -161,5 +166,22 @@ public class DiaryService {
         resultMap.put("icon", weatherData.get("icon"));
 
         return resultMap;
+    }
+
+    private void validateDate(LocalDate date) {
+        if (date.isAfter(LocalDate.now().plusYears(200))
+                || date.isBefore(LocalDate.now().minusYears(200))
+        ) {
+            throw new DiaryException(ErrorCode.INVALID_DATE_VALUE);
+        }
+    }
+
+    private void validatePeriod(LocalDate startDate, LocalDate endDate) {
+        validateDate(startDate);
+        validateDate(endDate);
+
+        if (startDate.isAfter(endDate)) {
+            throw new DiaryException(ErrorCode.INVALID_PERIOD_DATE);
+        }
     }
 }
