@@ -55,6 +55,13 @@ public class DiaryService {
         return diaryRepository.findAllByDateBetween(startDate, endDate);
     }
 
+    @Transactional
+    public void updateDiary(LocalDate date, String text) {
+        Diary editDiary = diaryRepository.getFirstByDate(date);
+        editDiary.setText(text);
+        diaryRepository.save(editDiary);
+    }
+
     private String getWeatherString() {
         String apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=seoul&appid=" + apiKey;
 
