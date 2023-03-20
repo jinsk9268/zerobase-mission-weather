@@ -1,6 +1,7 @@
 package zerobase.weather.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import zerobase.weather.domain.Diary;
@@ -22,6 +23,7 @@ public class DiaryController {
     void createDiary(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @ApiParam(value = "일기를 생성할 날짜 (yyyy-MM-dd)", example = "2023-01-01")
             LocalDate date,
             @RequestBody String text
     ) {
@@ -33,6 +35,7 @@ public class DiaryController {
     List<Diary> readDiary(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @ApiParam(value = "일기를 조회할 날짜 (yyyy-MM-dd)", example = "2023-01-01")
             LocalDate date
     ) {
         return diaryService.readDiary(date);
@@ -43,9 +46,11 @@ public class DiaryController {
     List<Diary> readDiaries(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @ApiParam(value = "조회할 기간의 첫번째 날짜 (yyyy-MM-dd)", example = "2023-01-01")
             LocalDate startDate,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @ApiParam(value = "조회할 기간의 두번째 날짜 (yyyy-MM-dd)", example = "2023-01-01")
             LocalDate endDate
     ) {
         return diaryService.readDiaries(startDate, endDate);
@@ -56,6 +61,7 @@ public class DiaryController {
     void updateDiary(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @ApiParam(value = "업데이트할 일기의 날짜 (yyyy-MM-dd)", example = "2023-01-01")
             LocalDate date,
             @RequestBody String text
     ) {
@@ -67,6 +73,7 @@ public class DiaryController {
     void deleteDiary(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @ApiParam(value = "삭제할 일기의 날짜 (yyyy-MM-dd)", example = "2023-01-01")
             LocalDate date
     ) {
         diaryService.deleteDiary(date);
