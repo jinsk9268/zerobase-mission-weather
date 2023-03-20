@@ -34,4 +34,16 @@ public class DiaryController {
     ) {
         return diaryService.readDiary(date);
     }
+
+    @GetMapping("/read/diaries")
+    List<Diary> readDiaries(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate
+    ) {
+        return diaryService.readDiaries(startDate, endDate);
+    }
 }
